@@ -1,8 +1,8 @@
 import csv
-import txtToCsv
-import csvMod
-import resistToVolt
-import avgSens
+from . import txtToCsv
+from . import csvMod
+from . import resistToVolt
+from . import avgSens
 import os
 
 
@@ -11,6 +11,8 @@ def txt_to_csv(inputFile: str, newName):
     
     txtToCsv.txt2csv(inputFile, filename)
     moddedCSV = csvMod.modifyCSV(filename)
+    # avgCSV = avgSens.averageSensors(filename)
+    # finalMat = resistToVolt.voltageConvert(filename)
     resistCSV = resistToVolt.voltageConvert(filename)
     finalMat = avgSens.averageSensors(filename)
     #print(finalMat)
@@ -21,7 +23,7 @@ def txt_to_csv(inputFile: str, newName):
 
 
 if __name__ == "__main__":
-    txt_to_csv("C:/Capstone Code/DataFiles/SESS-6.TXT", "testing_session_52124.csv")
+    txt_to_csv("C:/Users/boothcd/Downloads/SESS8.TXT", "newVerTest.csv")
 
 
 

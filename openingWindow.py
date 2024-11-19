@@ -1,8 +1,11 @@
 import tkinter as tk
 from tkinter import ttk
-import newFile
-from tester import MyWindow
-from VideoPlayer import VideoPlayer
+from . import newFile
+from .tester import MyWindow
+from os import startfile
+import webbrowser
+import urllib.parse
+
 
 
 class MyApp:
@@ -11,8 +14,8 @@ class MyApp:
 
         screen_width = self.root.winfo_screenwidth()
         screen_height = self.root.winfo_screenheight()
-        window_height = 150
-        window_width = 600  
+        window_height = 200
+        window_width = 800  
         x_cordinate = int((screen_width/2) - (window_width/2))
         y_cordinate = int((screen_height/3) - (window_height/2))
 
@@ -22,7 +25,7 @@ class MyApp:
         self.root.minsize(window_width, window_height)
         buttonFont = tk.font.Font(size=25)
         lowbuttonFont = tk.font.Font(size=12)
-        self.filename = ''
+        self.filename = None
         self.secondaryPane = tk.Toplevel()
         self.secondaryPane.withdraw()
         self.root.protocol("WM_DELETE_WINDOW", self.show_modal_popup)
@@ -39,12 +42,21 @@ class MyApp:
         self.new_button = tk.Button(topframe, text= "New File", command= self.new_file, font= buttonFont)
         self.new_button.grid(column=2, row=0)
 
-        self.guiTutorial = tk.Button(botframe, text = "Watch the GUI tutorial", command= lambda: self.showTutorial("fish-spinning.mp4"), font = lowbuttonFont)
-        self.deviceTutorial = tk.Button(botframe, text = "Watch the device setup tutorial", command= lambda: self.showTutorial("rat-spinning.mp4"), font = lowbuttonFont)
-        self.guiTutorial.grid(column=1, row=0)
-        self.deviceTutorial.grid(column=2, row=0)
+        #self.guiTutorial = tk.Button(botframe, text = "Watch the GUI tutorial", font = lowbuttonFont) #, command= lambda: self.showTutorial("C:/Capstone Code/WindowCode/Soil Pre-Lab.pdf"))
+        #self.deviceTutorial = tk.Button(botframe, text = "Watch the device setup tutorial", font = lowbuttonFont)#, command= lambda: self.showTutorial("C:/Capstone Code/WindowCode/SetupTutorial.mp4")
+        #self.useTutorial = tk.Button(botframe, text = "Watch the device use tutorial", font = lowbuttonFont)#, command= lambda: self.showTutorial("C:/Capstone Code/WindowCode/UseTutorial.mp4"), 
+        #self.guiTutorial.grid(column=1, row=0)
+        #self.deviceTutorial.grid(column=2, row=0)
+        #self.useTutorial.grid(column=3, row=0)
+        self.openTutorials = tk.Button(botframe, text = "Open Tutorials in Google Drive", font = lowbuttonFont, command = lambda: webbrowser.open('https://drive.google.com/drive/folders/1Py9WgIonaDRoLzOLRUtEgT8R2gFH7dVK?usp=sharing'))
+        self.openTutorials.grid(column=1, row=0, columnspan=3)
         self.close_button = tk.Button(botframe,text= "Close Application", command=self.closeProgram, font = lowbuttonFont)
-        self.close_button.grid(column=3, row=0)
+        self.close_button.grid(column=4, row=0)
+
+    def openURL(self):
+        url = 'https://drive.google.com/drive/folders/1Py9WgIonaDRoLzOLRUtEgT8R2gFH7dVK?'
+        params = {'usp': 'sharing'}
+        print(url + urllib.parse.urlencode(params))
 
     def closeProgram(self):
         # Close the main window
@@ -55,10 +67,13 @@ class MyApp:
     def new_file(self):
         self.root.withdraw()
         self.secondaryPane.deiconify()
-        self.newFileWindow = newFile.FileWindow(self.secondaryPane, self.root)
-        # if self.newFileWindow.csvName != '':
-        #     self.openNewFile(newFile.FileWindow.getFileName())
+        newFile.FileWindow(self.secondaryPane, self.root, self.newFileCall)
+        
        
+    def newFileCall(self, filename):
+        if filename != None:
+            MyWindow(self.secondaryPane, filename)
+
     def openFile(self):
         self.getFile()
         if self.filename != '':
@@ -66,9 +81,9 @@ class MyApp:
             self.secondaryPane.deiconify()
             MyWindow(self.secondaryPane, self.filename)
 
+
     def showTutorial(self, identity):
-        videoPane = tk.Toplevel(self.root)
-        VideoPlayer(videoPane, identity)
+        startfile(identity)
 
 
     # def openNewFile(self, file):

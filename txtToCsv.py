@@ -14,3 +14,6 @@ def txt2csv(path, filename):
     df = pd.read_fwf(path)
     writeFile = filename
     df.to_csv(writeFile)
+
+if __name__ == "__main__":
+    txt2csv("C:/Users/boothcd/Downloads/SESS79.TXT", "C:/Users/boothcd/Downloads/Heavyweight.CSV")

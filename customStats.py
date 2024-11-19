@@ -41,7 +41,7 @@ class horseStats:
         for i in range(8):
             self.data[i][2] = min(self.forceData[i][int(self.timeData[0]):int(self.timeData[1])])
             self.data[i][4] = (self.forceData[i][int(self.timeData[0]):int(self.timeData[1])]).index(self.data[i][2])
-            self.data[i][4] = int(self.data[i][4]*(5/6)  + int(self.timeData[0])) + 4
+            self.data[i][4] = int(self.data[i][4]*(5/6) + int(self.timeData[0])) + 4
 
     def tilt(self):
         pass

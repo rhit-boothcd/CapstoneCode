@@ -1,12 +1,13 @@
 import tkinter as tk
 from tkinter import ttk
+import io
+import csv
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
-from customStats import horseStats
-import csv
-from newGraphFile import NewFileWindow
-from existGraphFile import ExistFileWindow
+from .customStats import horseStats
+from . import newFile
+from .savePDF import GenerateReport
 
 
 #import newFile
@@ -65,39 +66,46 @@ class MyWindow:
         self.file = tk.Menu(self.menubar)
         #self.edit = tk.Menu(self.menubar)
         #self.view = tk.Menu(self.menubar)
-        #self.save = tk.Menu(self.menubar)
+        self.save = tk.Menu(self.menubar)
 
         #menubar.add_command(menu= save, label= 'Save', command= lambda: print('saved'))
-        self.menubar.add_cascade(menu= self.file, label= 'File')
         #self.menubar.add_cascade(menu= self.edit, label= 'Edit')
-        #self.menubar.add_cascade(menu= self.view, label= 'View')
+        self.menubar.add_cascade(menu= self.file, label= 'File')
 
-        self.file.add_command(label= "New (Existing)", command= lambda: ExistFileWindow())
-        self.file.add_command(label= "New (New)", command= lambda: NewFileWindow())
-        self.file.add_separator()
+        #self.file.add_command(label= "New (Existing)", command= lambda: ExistFileWindow())
+        self.file.add_command(label= "New", command= self.internalNewFile)
         self.file.add_command(label= "Open", command= self.openFile)
-        #self.file.add_command(label= "Export Stats") 
+        self.file.add_separator()
+        self.file.add_command(label= "Export File", command= self.create_modal) 
 
 # Checkboxes setup
     def setup_checkboxes(self) -> None:
 
-        self.leftWBox = tk.Checkbutton(self.legendArea, text= 'Left Wither', command= lambda: self.toggle_line(0), bg= "DarkOrchid1", padx=35, pady=15, font= tk.font.Font(size=15))
-        self.rightWBox = tk.Checkbutton(self.legendArea, text = 'Right Wither', command= lambda: self.toggle_line(1), bg="PaleVioletRed1", padx=35, pady=15, font= tk.font.Font(size=15))
-        self.leftShBox = tk.Checkbutton(self.legendArea, text= 'Left Shoulder', command= lambda: self.toggle_line(2), bg= "dodger blue", padx=25, pady=15, font= tk.font.Font(size=15))
-        self.rightShBox = tk.Checkbutton(self.legendArea, text= 'Right Shoulder', command= lambda: self.toggle_line(3), bg= "PaleTurquoise1", padx=25, pady=15, font= tk.font.Font(size=15))
-        self.leftSpBox = tk.Checkbutton(self.legendArea, text= 'Left Spine', command= lambda: self.toggle_line(4), bg= "lime green", padx=39, pady=15, font= tk.font.Font(size=15))
-        self.rightSpBox = tk.Checkbutton(self.legendArea, text= 'Right Spine', command= lambda: self.toggle_line(5), bg= "goldenrod1", padx=39, pady=15, font= tk.font.Font(size=15))
-        self.leftTBox = tk.Checkbutton(self.legendArea, text= 'Left Thoracic', command= lambda: self.toggle_line(6), bg="black", fg="snow", padx=26, pady=15, font= tk.font.Font(size=15))
-        self.rightTBox = tk.Checkbutton(self.legendArea, text= 'Right Thoracic', command= lambda: self.toggle_line(7), bg= "firebrick1", padx=26, pady=15, font= tk.font.Font(size=15))
+        self.rightTBox = tk.Checkbutton(self.legendArea, text= 'Right Thoracic', command= lambda: self.toggle_line(0), bg= "firebrick1", padx=26, pady=15, font= tk.font.Font(size=15))
+        self.leftTBox = tk.Checkbutton(self.legendArea, text= 'Left Thoracic', command= lambda: self.toggle_line(1), bg="gray50", padx=26, pady=15, font= tk.font.Font(size=15))
+        self.rightSpBox = tk.Checkbutton(self.legendArea, text= 'Right Spine', command= lambda: self.toggle_line(2), bg= "goldenrod1", padx=39, pady=15, font= tk.font.Font(size=15))
+        self.leftSpBox = tk.Checkbutton(self.legendArea, text= 'Left Spine', command= lambda: self.toggle_line(3), bg= "lime green", padx=39, pady=15, font= tk.font.Font(size=15))
+        self.rightShBox = tk.Checkbutton(self.legendArea, text= 'Right Shoulder', command= lambda: self.toggle_line(4), bg= "PaleTurquoise1", padx=25, pady=15, font= tk.font.Font(size=15))
+        self.leftShBox = tk.Checkbutton(self.legendArea, text= 'Left Shoulder', command= lambda: self.toggle_line(5), bg= "dodger blue", padx=25, pady=15, font= tk.font.Font(size=15))
+        self.rightWBox = tk.Checkbutton(self.legendArea, text = 'Right Wither', command= lambda: self.toggle_line(6), bg="PaleVioletRed1", padx=35, pady=15, font= tk.font.Font(size=15))
+        self.leftWBox = tk.Checkbutton(self.legendArea, text= 'Left Wither', command= lambda: self.toggle_line(7), bg= "DarkOrchid1", padx=35, pady=15, font= tk.font.Font(size=15))
         
-        self.rightWBox.grid(column= 1, row= 0)
-        self.leftWBox.grid(column= 0, row= 0)
-        self.rightShBox.grid(column= 1, row = 1)
-        self.leftShBox.grid(column= 0, row = 1)
-        self.rightSpBox.grid(column= 1, row = 2)
-        self.leftSpBox.grid(column= 0, row= 2)
-        self.rightTBox.grid(column= 1, row= 3)
-        self.leftTBox.grid(column= 0, row= 3)
+        checkInstruct = tk.Label(self.legendArea, text= "Check to turn off")
+        checkInstruct.grid(column=0, columnspan=2, row=0, pady= 5)
+        self.rightWBox.grid(column= 1, row= 1)
+        self.leftWBox.grid(column= 0, row= 1)
+        self.rightShBox.grid(column= 1, row = 2)
+        self.leftShBox.grid(column= 0, row = 2)
+        self.rightSpBox.grid(column= 1, row = 3)
+        self.leftSpBox.grid(column= 0, row= 3)
+        self.rightTBox.grid(column= 1, row= 4)
+        self.leftTBox.grid(column= 0, row= 4)
+
+        for i in range(1, 5):
+            self.legendArea.grid_rowconfigure(i, weight=1)
+        for i in range(2):
+            self.legendArea.grid_columnconfigure(i, weight=1)
+
         
 
     def toggle_line(self, line_num):
@@ -117,14 +125,14 @@ class MyWindow:
         # self.ax.set_xticks(self.dataX, timestamp)
         # self.ax.xaxis.set_major_locator(plt.MaxNLocator(10))
         self.ax.set_ylabel("Force (pounds)")
-        line1, = self.ax.plot([], [], visible=True, color= "blueviolet")
-        line2, = self.ax.plot([], [], visible=True, color= "pink")
-        line3, = self.ax.plot([], [], visible=True, color= "royalblue")
-        line4, = self.ax.plot([], [], visible=True, color= "paleturquoise")
-        line5, = self.ax.plot([], [], visible=True, color= "forestgreen")
-        line6, = self.ax.plot([], [], visible=True, color= "gold")
-        line7, = self.ax.plot([], [], visible=True, color= "black")
-        line8, = self.ax.plot([], [], visible=True, color= "firebrick")
+        line1, = self.ax.plot([], [], visible=True, color= "firebrick")
+        line2, = self.ax.plot([], [], visible=True, color= "dimgray") 
+        line3, = self.ax.plot([], [], visible=True, color= "gold")
+        line4, = self.ax.plot([], [], visible=True, color= "forestgreen") 
+        line5, = self.ax.plot([], [], visible=True, color= "paleturquoise")
+        line6, = self.ax.plot([], [], visible=True, color= "royalblue") 
+        line7, = self.ax.plot([], [], visible=True, color= "pink")
+        line8, = self.ax.plot([], [], visible=True, color= "blueviolet") 
         self.lineList = [line1, line2, line3, line4, line5, line6, line7, line8]
         self.canvas = FigureCanvasTkAgg(self.fig, master=self.graphArea)
         self.canvas.draw()
@@ -151,6 +159,18 @@ class MyWindow:
             self.dataX, self.dataY= self.initialData(self.filename)
             self.changePlot()
             self.root.title(self.filename)
+
+    def internalNewFile(self):
+        self.tertiaryPane = tk.Toplevel(self.root)
+        newFile.FileWindow(self.tertiaryPane, self.root, self.newFileCall)
+
+    def newFileCall(self, filename):
+        if filename != None:
+            self.filename = filename
+            self.dataX, self.dataY= self.initialData(filename)
+            self.changePlot()
+            self.root.title(filename)
+            self.tertiaryPane.destroy()
 
     def setup_stats(self):
         
@@ -186,37 +206,85 @@ class MyWindow:
             #f x_max > 
         timeBound = [x_min, x_max]
         self.statisticalData = horseStats(timeBound, self.dataY).data
-        self.generateLabel(self.withFrame, 0)
-        self.generateLabel(self.sholFrame, 1)
-        self.generateLabel(self.spinFrame, 2)
-        self.generateLabel(self.thorFrame, 3)
+        self.generateLabel(self.withFrame, 3)
+        self.generateLabel(self.sholFrame, 2)
+        self.generateLabel(self.spinFrame, 1)
+        self.generateLabel(self.thorFrame, 0)
 
         #print(timeBound)
 
-    def saveStats(self):
-        pass
+    def saveOutput(self, filename, notes, modal):
+        modal.destroy()
+        self.runStats()
+        buffer = io.BytesIO()
+        self.fig.savefig(buffer, format='png')
+        buffer.seek(0)
+        GenerateReport(filename, buffer, self.statisticalData, notes)
+
+    def pdfFile(self):
+        self.folder = tk.filedialog.askdirectory(initialdir = "/Capstone Code/DataFiles", title = "Select a Folder")
+        if self.folder:
+            self.single_line_label.config(text=f"Folder: {self.folder}")
+            self.confirm_button.config(state= "active")
+            
+    def create_modal(self):
+        modal = tk.Toplevel(self.root)
+        modal.title("Export File")
+        modal.geometry("400x300")
+        modal.transient(self.root)
+        modal.grab_set()
+
+        # File selection button
+        file_button = tk.Button(modal, text="Select Folder", command= self.pdfFile)
+
+        file_button.pack(pady=10)
+
+        # Single line text entry
+        self.single_line_label = tk.Label(modal, text="Folder: Not Selected")
+        self.single_line_label.pack(pady=5)
+
+        filearea = tk.Frame(modal)
+        filelabel = tk.Label(filearea, text= "Filename: ")
+        pathEntry = tk.Entry(filearea)
+        pathEntry.grid(column= 1, row = 0)
+        filelabel.grid(column= 0, row= 0)
+        filearea.pack()
+
+        # Large paragraph text entry
+        paragraph_label = tk.Label(modal, text="Notes about session")
+        paragraph_label.pack(pady=5)
+        paragraph_text = tk.Text(modal, height=5, width=40)
+        paragraph_text.pack(pady=5)
+
+        # Confirmation and Cancelation buttons
+        button_frame = tk.Frame(modal)
+        button_frame.pack(pady=10)
+        self.confirm_button = tk.Button(button_frame, 
+            text="Confirm", state= "disabled", 
+            command= lambda: self.saveOutput(self.folder + '/' + pathEntry.get(), paragraph_text.get("1.0", tk.END).strip(), modal))
+        self.confirm_button.pack(side= "left", padx=5)
+        cancel_button = tk.Button(button_frame, text="Cancel", command=modal.destroy)
+        cancel_button.pack(side="left", padx=5)
 
     def generateLabel(self, master, location):
-        # fluxLab = ttk.Label(master, text= f"Flux: {self.statisticalData[location*2][6]}")
-        # fluxLab.grid(column=1, row=0)
         leftFrame = ttk.Frame(master)
         leftFrame.grid(column=0, row = 1)
         for widget in leftFrame.winfo_children():
             widget.destroy()
         ttk.Label(leftFrame, text= "Left").grid(column=0, row=0)
-        ttk.Label(leftFrame, text=f"Average: {self.statisticalData[location*2][0]:.1f}").grid(column=0, row=1)
-        ttk.Label(leftFrame, text=f"Range: {self.statisticalData[location*2][1]:.1f}").grid(column=0, row=2)
-        ttk.Label(leftFrame, text=f"Min: {self.statisticalData[location*2][2]:.1f} @ {self.statisticalData[location*2][4]}").grid(column=1, row=1)
-        ttk.Label(leftFrame, text=f"Max: {self.statisticalData[location*2][3]:.1f} @ {self.statisticalData[location*2][5]}").grid(column=1, row=2)
+        ttk.Label(leftFrame, text=f"Average: {self.statisticalData[location*2+1][0]:.1f}").grid(column=0, row=1)
+        ttk.Label(leftFrame, text=f"Range: {self.statisticalData[location*2+1][1]:.1f}").grid(column=0, row=2)
+        ttk.Label(leftFrame, text=f"Min: {self.statisticalData[location*2+1][2]:.1f} @ {self.statisticalData[location*2+1][4]}").grid(column=1, row=1)
+        ttk.Label(leftFrame, text=f"Max: {self.statisticalData[location*2+1][3]:.1f} @ {self.statisticalData[location*2+1][5]}").grid(column=1, row=2)
         rightFrame = ttk.Frame(master)
         rightFrame.grid(column=1, row = 1)
         for widget in rightFrame.winfo_children():
             widget.destroy()
         ttk.Label(rightFrame, text= "Right").grid(column=0, row=0)
-        ttk.Label(rightFrame, text=f"Average: {self.statisticalData[location*2+1][0]:.1f}").grid(column=0, row=1)
-        ttk.Label(rightFrame, text=f"Range: {self.statisticalData[location*2+1][1]:.1f}").grid(column=0, row=2)
-        ttk.Label(rightFrame, text=f"Min: {self.statisticalData[location*2+1][2]:.1f} @ {self.statisticalData[location*2+1][4]}").grid(column=1, row=1)
-        ttk.Label(rightFrame, text=f"Max: {self.statisticalData[location*2+1][3]:.1f} @ {self.statisticalData[location*2+1][5]}").grid(column=1, row=2)
+        ttk.Label(rightFrame, text=f"Average: {self.statisticalData[location*2][0]:.1f}").grid(column=0, row=1)
+        ttk.Label(rightFrame, text=f"Range: {self.statisticalData[location*2][1]:.1f}").grid(column=0, row=2)
+        ttk.Label(rightFrame, text=f"Min: {self.statisticalData[location*2][2]:.1f} @ {self.statisticalData[location*2][4]}").grid(column=1, row=1)
+        ttk.Label(rightFrame, text=f"Max: {self.statisticalData[location*2][3]:.1f} @ {self.statisticalData[location*2][5]}").grid(column=1, row=2)
 
 
     def initialData(self, path):
@@ -236,7 +304,7 @@ class MyWindow:
 
         for i, rows in enumerate(data):
             if i > 3:
-                data_x.append(float(i-3)*(5/6))
+                data_x.append(float(i-3)*(1/4))
             for k, col in enumerate(data[i]):
                 if i>3:
                     if k%10 == 8:

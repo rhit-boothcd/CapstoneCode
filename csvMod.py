@@ -76,4 +76,4 @@ def modifyCSV(inputFile):
 
 
 if __name__ == "__main__":
-    modifyCSV("C:/Capstone Code/DataFiles/SESS250.csv")
+    modifyCSV("C:/Users/boothcd/Downloads/Heavyweight.CSV")
